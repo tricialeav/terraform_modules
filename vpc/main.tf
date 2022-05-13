@@ -12,3 +12,42 @@ resource "aws_vpc" "this" {
   assign_generated_ipv6_cidr_block     = var.vpc_assign_generated_ipv6_cidr_block
   tags                                 = var.tags
 }
+
+resource "aws_default_network_acl" "this" {
+  count                  = var.manage_vpc_default_network_acl ? 1 : 0
+  default_network_acl_id = aws_vpc.this.default_network_acl_id
+
+  dynamic "ingress" {
+    for_each = var.vpc_default_network_acl_ingress
+
+    content {
+      action    = ingress.value["action"]
+      from_port = ingress.value["from_port"]
+      protocol  = ingress.value["protocol"]
+      rule_no   = ingress.value["rule_no"]
+      to_port   = ingress.value["to_port"]
+      # Optional Values
+      cidr_block      = lookup(ingress.value, "cidr_block", null)
+      icmp_code       = lookup(ingress.value, "icmp_code", null)
+      icmp_type       = lookup(ingress.value, "icmp_type", null)
+      ipv6_cidr_block = lookup(ingress.value, "ipv6_cidr_block", null)
+    }
+  }
+
+  dynamic "egress" {
+    for_each = var.vpc_default_network_acl_egress
+
+    content {
+      action    = egress.value["action"]
+      from_port = egress.value["from_port"]
+      protocol  = egress.value["protocol"]
+      rule_no   = egress.value["rule_no"]
+      to_port   = egress.value["to_port"]
+      # Optional Values
+      cidr_block      = lookup(egress.value, "cidr_block", null)
+      icmp_code       = lookup(egress.value, "icmp_code", null)
+      icmp_type       = lookup(egress.value, "icmp_type", null)
+      ipv6_cidr_block = lookup(egress.value, "ipv6_cidr_block", null)
+    }
+  }
+}

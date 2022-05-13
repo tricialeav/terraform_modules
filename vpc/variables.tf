@@ -68,3 +68,21 @@ variable "tags" {
   description = "A map of tags to assign to the resource. If configured with a provider default_tags configuration block present, tags with matching keys will overwrite those defined at the provider-level."
   type        = map(string)
 }
+
+variable "manage_vpc_default_network_acl" {
+  description = "Whether to update the default Nentwork ACL."
+  type        = bool
+  default     = false
+}
+
+variable "vpc_default_network_acl_ingress" {
+  description = "A list of configuration blocks for default Network ACL ingress rules."
+  type        = any
+  default     = []
+}
+
+variable "vpc_default_network_acl_egress" {
+  description = "A list of configuration blocks for default Network ACL egress rules."
+  type        = any
+  default     = []
+}
