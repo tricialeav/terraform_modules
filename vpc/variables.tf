@@ -124,3 +124,21 @@ variable "ec2_managed_prefix_list_entries" {
   }))
   default = []
 }
+
+variable "create_egress_only_internet_gateway" {
+  description = "Whether to create an egress only internet gateway for the VPC."
+  type        = bool
+  default     = false
+}
+
+variable "create_internet_gateway" {
+  description = "Whether to create an internet gateway for the VPC."
+  type        = bool
+  default     = true
+}
+
+variable "subnets" {
+  description = "A map containing subnet parameters for the VPC."
+  type        = any
+  default     = {}
+}
