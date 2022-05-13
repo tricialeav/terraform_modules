@@ -8,8 +8,13 @@ locals {
     }
   ])
 
-  public_subnets  = var.subnets["public_subnets"]
-  private_subnets = var.subnets["private_subnets"]
+  public_subnets          = var.subnets["public_subnets"]
+  public_subnet_length    = length(local.public_subnets["cidr_blocks"]) > 0 ? length(local.public_subnets["cidr_blocks"]) : length(local.public_subnets["ipv6_cidr_blocks"]) > 0 ? length(local.public_subnets["ipv6_cidr_blocks"]) : 0
+  public_subnet_cidr_type = length(local.public_subnets["cidr_blocks"]) > 0 ? "ipv4" : length(local.public_subnets["ipv6_cidr_blocks"]) > 0 ? "ipv6" : null
+
+  private_subnets          = var.subnets["private_subnets"]
+  private_subnet_length    = length(local.private_subnets["cidr_blocks"]) > 0 ? length(local.private_subnets["cidr_blocks"]) : length(local.private_subnets["ipv6_cidr_blocks"]) > 0 ? length(local.private_subnets["ipv6_cidr_blocks"]) : 0
+  private_subnet_cidr_type = length(local.private_subnets["cidr_blocks"]) > 0 ? "ipv4" : length(local.private_subnets["ipv6_cidr_blocks"]) > 0 ? "ipv6" : null
 }
 
 resource "aws_vpc" "this" {
@@ -97,9 +102,9 @@ resource "aws_default_route_table" "this" {
 }
 
 resource "aws_subnet" "public" {
-  count                                          = length(local.public_subnets["cidr_blocks"]) > 0 ? length(local.public_subnets["cidr_blocks"]) : length(local.public_subnets["ipv6_cidr_blocks"]) > 0 ? length(local.public_subnets["ipv6_cidr_blocks"]) : 0
-  cidr_block                                     = length(local.public_subnets["cidr_blocks"]) > 0 ? element(local.public_subnets["cidr_blocks"], count.index) : null
-  ipv6_cidr_block                                = length(local.public_subnets["ipv6_cidr_blocks"]) > 0 ? element(local.public_subnets["cidr_blocks"], count.index) : null
+  count                                          = local.public_subnet_length
+  cidr_block                                     = local.public_subnet_cidr_type == "ipv4" ? element(local.public_subnets["cidr_blocks"], count.index) : null
+  ipv6_cidr_block                                = local.public_subnet_cidr_type == "ipv6" ? element(local.public_subnets["cidr_blocks"], count.index) : null
   availability_zone                              = element(local.public_subnets["availability_zones"], count.index)
   vpc_id                                         = aws_vpc.this.id
   assign_ipv6_address_on_creation                = try(local.public_subnets["assign_ipv6_address_on_creation"], null)
@@ -112,6 +117,25 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch                        = try(local.public_subnets["map_public_ip_on_launch"], null)
   outpost_arn                                    = try(local.public_subnets["outpost_arn"], null)
   private_dns_hostname_type_on_launch            = try(local.public_subnets["private_dns_hostname_type_on_launch"], null)
+  tags                                           = var.tags
+}
+
+resource "aws_subnet" "private" {
+  count                                          = local.private_subnet_length
+  cidr_block                                     = local.private_subnet_cidr_type == "ipv4" ? element(local.private_subnets["cidr_blocks"], count.index) : null
+  ipv6_cidr_block                                = local.private_subnet_cidr_type == "ipv6" ? element(local.private_subnets["cidr_blocks"], count.index) : null
+  availability_zone                              = element(local.private_subnets["availability_zones"], count.index)
+  vpc_id                                         = aws_vpc.this.id
+  assign_ipv6_address_on_creation                = try(local.private_subnets["assign_ipv6_address_on_creation"], null)
+  customer_owned_ipv4_pool                       = try(local.private_subnets["customer_owned_ipv4_pool"], null)
+  enable_dns64                                   = try(local.private_subnets["enable_dns64"], null)
+  enable_resource_name_dns_aaaa_record_on_launch = try(local.private_subnets["enable_resource_name_dns_aaaa_record_on_launch"], null)
+  enable_resource_name_dns_a_record_on_launch    = try(local.private_subnets["enable_resource_name_dns_a_record_on_launch"], null)
+  ipv6_native                                    = try(local.private_subnets["ipv6_native"], null)
+  map_customer_owned_ip_on_launch                = try(local.private_subnets["map_customer_owned_ip_on_launch"], null)
+  map_public_ip_on_launch                        = try(local.private_subnets["map_public_ip_on_launch"], null)
+  outpost_arn                                    = try(local.private_subnets["outpost_arn"], null)
+  private_dns_hostname_type_on_launch            = try(local.private_subnets["private_dns_hostname_type_on_launch"], null)
   tags                                           = var.tags
 }
 
