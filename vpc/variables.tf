@@ -104,3 +104,23 @@ variable "vpc_default_route_table_route" {
   type        = list(map(string))
   default     = []
 }
+
+variable "create_ec2_managed_prefix_list" {
+  description = "Whether to create one or more EC2 mannaged prefix lists."
+  type        = bool
+  default     = false
+}
+
+variable "ec2_managed_prefix_list_entries" {
+  description = "A map of list of map that includes the folliwng EC2 prefix list parameters: address_family, max_entries, name, and entries."
+  type = list(object({
+    address_family = string
+    max_entries    = number
+    name           = string
+    entry = list(object({
+      cidr        = string
+      description = string
+    }))
+  }))
+  default = []
+}

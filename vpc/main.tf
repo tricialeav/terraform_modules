@@ -1,3 +1,14 @@
+locals {
+  ec2_prefix_entries = flatten([
+    for prefix_list in var.ec2_managed_prefix_list_entries : {
+      address_family = prefix_list.address_family
+      max_entries    = prefix_list.max_entries
+      name           = prefix_list.name
+      entry          = prefix_list.entry
+    }
+  ])
+}
+
 resource "aws_vpc" "this" {
   cidr_block                           = var.vpc_cidr_block
   instance_tenancy                     = var.vpc_instance_tenancy
@@ -79,5 +90,22 @@ resource "aws_default_route_table" "this" {
     }
   }
 
+  tags = var.tags
+}
+
+resource "aws_ec2_managed_prefix_list" "this" {
+  count          = var.create_ec2_managed_prefix_list ? length(var.ec2_managed_prefix_list_entries) : 0
+  address_family = local.ec2_prefix_entries[count.index]["address_family"]
+  max_entries    = local.ec2_prefix_entries[count.index]["max_entries"]
+  name           = local.ec2_prefix_entries[count.index]["name"]
+
+  dynamic "entry" {
+    for_each = local.ec2_prefix_entries[count.index]["entry"]
+
+    content {
+      cidr        = entry.value["cidr"]
+      description = lookup(entry.value, "description", null)
+    }
+  }
   tags = var.tags
 }
