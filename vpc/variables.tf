@@ -86,3 +86,21 @@ variable "vpc_default_network_acl_egress" {
   type        = any
   default     = []
 }
+
+variable "vpc_manage_default_route_table" {
+  description = "Whether to manage the default VPC route table."
+  type        = bool
+  default     = false
+}
+
+variable "vpc_default_route_table_propagating_vgws" {
+  description = "List of virtual gateways for propagation."
+  type        = list(string)
+  default     = null
+}
+
+variable "vpc_default_route_table_route" {
+  description = "Configuration block of routes. This argument is processed in attribute-as-blocks mode. This means that omitting this argument is interpreted as ignoring any existing routes. To remove all managed routes an empty list should be specified."
+  type        = list(map(string))
+  default     = []
+}

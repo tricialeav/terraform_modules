@@ -51,3 +51,33 @@ resource "aws_default_network_acl" "this" {
     }
   }
 }
+
+resource "aws_default_route_table" "this" {
+  count                  = var.vpc_manage_default_route_table ? 1 : 0
+  default_route_table_id = aws_vpc.this.default_route_table_id
+  propagating_vgws       = var.vpc_default_route_table_propagating_vgws
+
+  dynamic "route" {
+    for_each = var.vpc_default_route_table_route
+
+    content {
+      # One of the following must be specified 
+      cidr_block                 = lookup(route.value, "cidr_block", null)
+      ipv6_cidr_block            = lookup(route.value, "ipv6_ciodr_block", null)
+      destination_prefix_list_id = lookup(route.value, "destination_prefix_list_id", null)
+
+      # The following parameters are optional
+      core_network_arn          = lookup(route.value, "core_network_arn", null)
+      egress_only_gateway_id    = lookup(route.value, "egress_only_gateway_id", null)
+      gateway_id                = lookup(route.value, "gateway_id", null)
+      instance_id               = lookup(route.value, "instance_id", null)
+      nat_gateway_id            = lookup(route.value, "nat_gateway_id", null)
+      network_interface_id      = lookup(route.value, "network_interface_id", null)
+      transit_gateway_id        = lookup(route.value, "transit_gateway_id", null)
+      vpc_endpoint_id           = lookup(route.value, "vpc_endpoint_id", null)
+      vpc_peering_connection_id = lookup(route.value, "vpc_peering_connection_id", null)
+    }
+  }
+
+  tags = var.tags
+}
