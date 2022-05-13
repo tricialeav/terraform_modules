@@ -36,6 +36,8 @@ module "vpc" {
     }
   }
 
+  create_internet_gateway = true
+
   tags = {
     Env = "test"
   }
